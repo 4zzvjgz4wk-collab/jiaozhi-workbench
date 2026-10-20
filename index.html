@@ -97,6 +97,14 @@ textarea{height:86px;font-size:12px}
 .mmap .mmbr b{font-size:14px}
 .mmap .mmleaf{display:inline-block;background:#eef3fa;border-radius:7px;padding:2px 8px;font-size:12.5px;margin:4px 4px 0 0;color:#33507c}
 .unitnav{display:flex;justify-content:space-between;gap:8px;margin-top:14px}
+.uvid{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px;background:#fbfcfe}
+.uvidt{font-weight:700;font-size:14px;margin-bottom:6px}
+.uvid .btn{margin:2px 2px 2px 0}
+.epsdir{border:1px solid var(--line);border-radius:12px;margin:8px 0;background:#fff}
+.epsdir summary{cursor:pointer;padding:10px 12px;font-weight:600;list-style:none}
+.epsdir summary::-webkit-details-marker{display:none}
+.epslist{padding:2px 12px 12px;display:flex;flex-direction:column;gap:6px}
+.epbtn{text-align:left;background:#eef3fa;border:1px solid #d5e2f2;border-radius:9px;padding:8px 10px;font-size:13.5px;cursor:pointer}
 .anchorbox{background:#fff7e0;border:1px solid #ecd28a;border-radius:12px;padding:11px 13px;margin:12px 0;font-size:13px;color:#7a5b12}
 .anchorbox b{font-size:16.5px;color:#5c430a;line-height:1.6}
 .anchorbox.light{background:#fbfcfe;border-color:var(--line);color:#44506b;font-size:14px}
@@ -1890,8 +1898,43 @@ const VIDEOS = {
 "科目一 · 综合素质（小学）":{bv:"BV1Ga4y1i77D", t:"CocoPolaris · 综合素质合集（29P，中小学通用）"},
 "科目二 · 教育教学知识与能力":{bv:"BV1AV411b7Sy", t:"CocoPolaris · 小学科二合集（39P，完结）"}
 };
+
+/* ============ 分集目录与单元↔分集映射（2026-10-20 据 B 站官方分集接口实拉） ============ */
+const EPS = {
+"BV1zKkGY1ELZ":["作文专项-写作1","作文专项-写作2","中小学教育观","中小学教师观","中小学学生观","中小学职业道德规范","幼儿儿童观","幼儿教师观","幼儿教育观","幼儿职业道德","基础能力-阅读理解","法律法规1-教育法（第一至八章）","法律法规2-教育法（第九至十章）+义务教育法","法律法规3-教师法+未成年人保护法（第一至二章）","法律法规4-未成年人保护法（第三至九章）","法律法规5-学生伤害事故处理办法+预防未成年人犯罪法","法律法规6-宪法（上）","法律法规7-宪法（下）","法律法规8-儿童权利公约+幼儿园工作规程","文化素养-文化常识","文化素养-成语典故","文化素养-传统文化","文化素养-中国古代科技成就","文化素养-世界科技成就","文化素养-外国文学","文化素养-音乐","文化素养-音乐2","中国文学之先秦文学","中国文学之秦汉文学","中国文学之魏晋南北朝文学","中国文学之唐代文学（上）","中国文学之唐代文学（下）","中国文学之宋代文学","中国文学之元明清文学（上）","现代文学"],
+"BV1WXCPYKEAd":["中学教师资格——考情分析","第一章 教育基础知识","第二节 教育学的发展","第三节 教育与社会发展","第四节 教育与人的发展","第五节 教育制度","第六节 教育目的","第二章 第一节 课程概述","第二节 学习概述","第三节 基础教育改革","第三章 第一、二节 教学概述·教学过程","第三节 教学原则和方法","第四节 教学组织形式和教学工作的基本环节","第五节 教学模式","第四章 第一节 认知过程","第一节 认知过程2","第二节 学习概述","第三节 学习理论","第四节 学习心理（上）","第四节 学习心理（下）","第五章 第一节 中学生认知发展阶段教育","第二节 中学生情绪与意志的发展","第三节 中学生人格的发展","第四节 中学生的能力与发展","第六章 中学生心理辅导","第七章 第一节 中学生品德心理与发展","第二、三、四节（德育）","第五节、第六节（德育）","第八章 中学班级管理与教师心理"],
+"BV1LcAoenEa8":["音乐-考情介绍+复习指导","巧记中国音乐史","潮起潮落——与山哥一起畅享山歌","重回巅峰-浪漫主义意大利歌剧","舞剧匠人-柴可夫斯基","音乐编创题答题技巧","教学设计必背模板","教学情境分析题必背模板","历年“珍”题2-2024上初中","历年“珍”题1-2024上高中"],
+"BV1Ga4y1i77D":["01集 教师资格证笔试考试系统介绍篇","02集 教资自学方法篇：三步走","03集 职业理念之教育观（1）","04集 职业理念之教育观（2）","05集 职业理念之学生观（1）","06集 职业理念之学生观（2）","07集 职业理念之教师观（1）","08集 职业理念之教师观（2）","09集 职业理念回顾篇","10集 职业道德（1）","11集 职业道德（2）","12集 阅读理解介绍+真题","13集 阅读理解真题解析（1）","14集 阅读理解真题解析（2）","15集 法律法规之教育法","15集补 法律法规之教育法补丁视频","16集 法律法规之义务教育法","17集 法律法规之教师法","18集 法律法规之未成年人保护法（2021修订）","19集 法律法规之预防未成年人犯罪法（2021修订）","20集 法律法规之学生伤害事故处理办法","21集 法律法规之宪法","22集 法律法规之家庭教育促进法","23集 法律法规之教师学生的权利和义务","24集 中小学教师违反职业道德处理办法","25集 中小学教育惩戒","26集 教育强国建设规划纲要","27集 中国教育现代化2035","28集 作文"],
+"BV1AV411b7Sy":["01集小学教资笔试介绍","02集 1.1.1 教育的概念、属性和功能","03集 1.1.2 教育的起源和发展","04集 1.2.1 教育学的发展阶段之萌芽期","05集 1.2.2 独立及多样化发展阶段","06集 1.2.3 深化发展阶段及中国近代教育思想","07集 1.3 教育与社会的发展","08集 1.4 教育目的","09集 1.5 教育制度","10集 1.6 教师专业发展","11集 2.1 课程概述","12集 2.2 课程组织","13集 2.3 基础教育课程改革","14集 3.1 教学概述","15集 3.2 教学过程","16集 3.3 教学原则","17集 3.4 教学方法","18集 3.5 教学组织、基本环节、教学评价及教学反思","19集 3.6 课堂管理","20集 4.1.1 心理学概述及感觉和知觉","21集 4.1.2 认知过程之注意和记忆","22集 4.1.3 认知过程之思维和想象","23集 4.2 学习概述及学习理论","24集 4.3.1 学习动机","25集 4.3.2 学习迁移和学习策略","26集 4.4 学习方式和问题解决","27集 5.1 小学生身心发展的规律","28集 5.2 认知发展理论","29集 5.3 情感情绪和意志","30集 5.4 人格和能力","31集 6.1 道德发展阶段理论","32集 6.2 德育过程和道德原则方法","33集 6.3 美育及安全心理健康教育","34集 7.1 班集体与班级管理","35集 7.2 学校活动及学习兴趣激发","36集 7.3 教育研究方法","37集 教学设计简介","38集 小学语文教学设计","39集 小学英语教学设计"]
+};
+/* 单元→分集：[BV, [集号...], 是否仅参考]；无对应单集的单元不列，页面回退到整门课入口 */
+const UNIT_EPS = {
+k1a:["BV1zKkGY1ELZ",[3]], k1b:["BV1zKkGY1ELZ",[5,4]], k1c:["BV1zKkGY1ELZ",[12,13,14]], k1d:["BV1zKkGY1ELZ",[15,16]], k1e:["BV1zKkGY1ELZ",[6]], k1f:["BV1zKkGY1ELZ",[22,20,21]], k1g:["BV1zKkGY1ELZ",[25,23,24,26]], k1h:["BV1zKkGY1ELZ",[11]], k1k:["BV1zKkGY1ELZ",[1,2]],
+k2a:["BV1WXCPYKEAd",[2,3]], k2b:["BV1WXCPYKEAd",[4,5,6,7]], k2c:["BV1WXCPYKEAd",[8,10]], k2d:["BV1WXCPYKEAd",[11,12]], k2e:["BV1WXCPYKEAd",[13,14]], k2f:["BV1WXCPYKEAd",[15,18,19,20]], k2g:["BV1WXCPYKEAd",[21,22,23,24]], k2h:["BV1WXCPYKEAd",[25]], k2i:["BV1WXCPYKEAd",[26,27,28]], k2j:["BV1WXCPYKEAd",[29]], k2k:["BV1WXCPYKEAd",[29],1],
+k3b:["BV1LcAoenEa8",[6],1], k3d:["BV1LcAoenEa8",[2]], k3e:["BV1LcAoenEa8",[4,5]], k3f:["BV1LcAoenEa8",[3]], k3g:["BV1LcAoenEa8",[4],1], k3h:["BV1LcAoenEa8",[1],1], k3i:["BV1LcAoenEa8",[7]], k3j:["BV1LcAoenEa8",[8]], k3k:["BV1LcAoenEa8",[9]],
+k3sa:["BV1LcAoenEa8",[1],1], k3sb:["BV1LcAoenEa8",[6],1], k3sc:["BV1LcAoenEa8",[7]], k3sd:["BV1LcAoenEa8",[6,8],1],
+p1a:["BV1Ga4y1i77D",[3,5,7,9]], p1b:["BV1Ga4y1i77D",[15,17,18,19]], p1c:["BV1Ga4y1i77D",[10,11]], p1e:["BV1Ga4y1i77D",[12,13]], p1f:["BV1Ga4y1i77D",[29]],
+p2a:["BV1AV411b7Sy",[2,7,8,9]], p2b:["BV1AV411b7Sy",[20,27,28]], p2c:["BV1AV411b7Sy",[34,19]], p2e:["BV1AV411b7Sy",[37]], p2f:["BV1AV411b7Sy",[14,15,18]], p2g:["BV1AV411b7Sy",[18],1], p2h:["BV1AV411b7Sy",[33],1]
+};
+function epsDirHTML(sjName, bv){
+const list = EPS[bv]; if(!list) return "";
+let h = '<details class="epsdir"><summary>选集目录 · '+esc(sjName)+'（共 '+list.length+' 集，点任意一集在页面内播放）</summary><div class="epslist">';
+list.forEach((t,ix)=>{ h += '<button class="epbtn" data-play="'+bv+'|'+(ix+1)+'">第'+(ix+1)+'集 · '+esc(t)+'</button>';});
+return h + '</div></details>';
+}
+function videoBlock(tid, sjName, u){
+const v = VIDEOS[sjName]; const m = UNIT_EPS[u.id];
+if(m && EPS[m[0]]){
+const bv = m[0]; let h = '<div class="uvid"><div class="uvidt">本单元视频（页面内播放）'+(m[2]?' <span class="tag fw">参考集</span>':"")+'</div><div id="up-'+u.id+'"></div>';
+m[1].forEach(pg=>{ h += '<button class="btn sm" data-uep="'+bv+'|'+pg+'|'+u.id+'">▶ 第'+pg+'集 · '+esc(EPS[bv][pg-1])+'</button> ';});
+h += '<div style="margin-top:6px"><a class="vidlink" href="'+bvURL(bv)+'?p='+m[1][0]+'" target="_blank" rel="noopener">在 B 站打开本单元第一集 ›</a></div></div>';
+return h;
+}
+if(v) return '<div class="uvid"><div class="mut">本单元暂无对应单集（这门课以高频考点与模板为主），先看整门课：</div><a class="vidlink" href="'+bvURL(v.bv)+'" target="_blank" rel="noopener">▶ 打开'+esc(sjName)+'课程页（B站）</a></div>';
+return "";
+}
 function bvURL(bv){ return "https://www.bilibili.com/video/" + bv + "/"; }
-function bvEmbed(bv){ return "https://player.bilibili.com/player.html?bvid=" + bv + "&page=1&high_quality=1&danmaku=0"; }
+function bvEmbed(bv, pg){ return "https://player.bilibili.com/player.html?bvid=" + bv + "&page=" + (pg||1) + "&high_quality=1&danmaku=0"; }
 
 /* ============ 机制层（与内容包分离，可复刻到其他考试） ============ */
 const LS_KEY = "jiaozhi_workbench_v1";
@@ -2018,7 +2061,7 @@ Object.keys(SAMPLE_LEC).forEach(uid=>{ for(const tk of Object.keys(PACK.tracks))
 function render(){ renderTracks(); renderNav(); const v = document.getElementById("view"); if(S.view==="today") v.innerHTML = vToday(); else if(S.view==="guide") v.innerHTML = vGuide(); else if(S.view==="course") v.innerHTML = vCourse(); else if(S.view==="quiz") v.innerHTML = vQuiz(); else if(S.view==="wrong") v.innerHTML = vWrong(); else v.innerHTML = vMe(); bind(); }
 
 function qHTML(tid, u, qi, inWrong){ const q = u.qs[qi]; const key = tid+"|"+u.id+"|"+qi; return '<div class="q" data-qkey="'+key+'"><p>'+(qi+1)+'. '+esc(q.q)+'</p>'+ q.opts.map((o,i)=>'<button class="opt" data-oi="'+i+'">'+esc(o)+'</button>').join("") + '<div class="why"></div></div>'; }
-function unitBody(tid, sjName, u){ const v = VIDEOS[sjName]; const link = v ? '<a class="vidlink" href="'+bvURL(v.bv)+'" target="_blank" rel="noopener">▶ 打开本单元对应课程视频（B站直达）</a>' : ""; if(u.lec){ const sj = PACK.tracks[tid].subjects.find(s=>s.name===sjName); const ix = sj? sj.units.findIndex(x=>x.id===u.id) : -1; let nav=""; if(sj && ix>=0){ const pv = sj.units[ix-1], nx = sj.units[ix+1]; nav = '<div class="unitnav">'+(pv? '<button class="btn sm ghost" data-go="'+pv.id+'">‹ 上一单元</button>' : '<span></span>')+(nx? '<button class="btn sm ghost" data-go="'+nx.id+'">下一单元 ›</button>' : '<span></span>')+'</div>'; } return link + lecHTML(u, nav) + '<div class="lecsec"><h4>单元练习</h4></div>' + u.qs.map((q,qi)=>qHTML(tid,u,qi,false)).join(""); } return link + '<ul>'+u.pts.map(p=>'<li>'+esc(p)+'</li>').join("")+'</ul>' + u.qs.map((q,qi)=>qHTML(tid,u,qi,false)).join(""); }
+function unitBody(tid, sjName, u){ const link = videoBlock(tid, sjName, u); if(u.lec){ const sj = PACK.tracks[tid].subjects.find(s=>s.name===sjName); const ix = sj? sj.units.findIndex(x=>x.id===u.id) : -1; let nav=""; if(sj && ix>=0){ const pv = sj.units[ix-1], nx = sj.units[ix+1]; nav = '<div class="unitnav">'+(pv? '<button class="btn sm ghost" data-go="'+pv.id+'">‹ 上一单元</button>' : '<span></span>')+(nx? '<button class="btn sm ghost" data-go="'+nx.id+'">下一单元 ›</button>' : '<span></span>')+'</div>'; } return link + lecHTML(u, nav) + '<div class="lecsec"><h4>单元练习</h4></div>' + u.qs.map((q,qi)=>qHTML(tid,u,qi,false)).join(""); } return link + '<ul>'+u.pts.map(p=>'<li>'+esc(p)+'</li>').join("")+'</ul>' + u.qs.map((q,qi)=>qHTML(tid,u,qi,false)).join(""); }
 
 function vToday(){ const tid = S.track; const days = daysToExam(); const hint = '<div class="card" style="border-color:#ffd9c2;background:#fff8f3"><b>打开方式（重要）</b><div class="mut">请把本文件存到手机里、用浏览器（Safari）打开使用：在聊天应用里直接点开附件，按钮可能点不动、进度也存不住。用浏览器打开就没有这些问题。</div></div>'; const wm = weekMinutes(tid); const pct = Math.min(100, Math.round(wm/Math.max(1,S.weekly)*100)); const daily = Math.max(15, Math.round(S.weekly/7/5)*5); let acc=0; const queue=[]; for(const item of trackUnits(tid)){ if(S.done[item.u.id]) continue; queue.push(item); acc+=item.u.min; if(acc>=daily) break; }
  const tp = totalProgress(tid);
@@ -2030,7 +2073,7 @@ function vToday(){ const tid = S.track; const days = daysToExam(); const hint = 
  h += '<div class="mut" style="margin-top:8px">没学完不用补，明天它还会排在最前面。学完记得在课程页做单元后面的练习题。</div></div>';
  return h; }
 
-function vCourse(){ const tid = S.track; let h = '<div class="card"><h2>视频课（页面内直接看）</h2><div class="mut">点“在页面内播放”就在下方看，不用跳走；也可以去B站打开全集。先看视频，再学下面的要点和练习。</div><div id="playerBox"></div>'; PACK.tracks[tid].subjects.forEach(sj=>{ const v = VIDEOS[sj.name]; if(!v) return; h += '<div class="vrow"><span>▶ '+esc(sj.name)+'<br><span class="mut">'+esc(v.t)+'</span></span><span><button class="btn sm" data-play="'+v.bv+'">页面内播放</button> <a class="btn sm ghost" style="text-decoration:none" href="'+bvURL(v.bv)+'" target="_blank" rel="noopener">B站全集</a></span></div>'; }); h += '<a class="vrow" href="https://www.smartedu.cn" target="_blank" rel="noopener"><span>▶ 国家智慧教育平台（官方免费）</span><span class="mut">smartedu.cn ›</span></a></div>'; PACK.tracks[tid].subjects.forEach(sj=>{ h += '<div class="subj"><h3>'+esc(sj.name)+'</h3>'; sj.units.forEach(u=>{ const done = !!S.done[u.id]; const open = S.openUid===u.id; h += '<div class="unit'+(open?" open":"")+'"><div class="row" data-open="'+u.id+'"><button class="chk'+(done?" done":"")+'" data-done="'+u.id+'">'+(done?"✓":"")+'</button><div class="tt"><b>'+esc(u.t)+'</b>'+(u.fw?' <span class="tag fw">框架 · 题库二期</span>':"")+'<div class="mut">预计 '+u.min+' 分钟</div></div><span class="mut">'+(open?"收起":"展开")+'</span></div><div class="body">'+(open?unitBody(tid,sj.name,u):"")+'</div></div>'; }); h += '</div>'; }); return h; }
+function vCourse(){ const tid = S.track; let h = '<div class="card"><h2>视频课（页面内直接看）</h2><div class="mut">点“在页面内播放”就在下方看，不用跳走；也可以去B站打开全集。先看视频，再学下面的要点和练习。</div><div id="playerBox"></div>'; PACK.tracks[tid].subjects.forEach(sj=>{ const v = VIDEOS[sj.name]; if(!v) return; h += '<div class="vrow"><span>▶ '+esc(sj.name)+'<br><span class="mut">'+esc(v.t)+'</span></span><span><button class="btn sm" data-play="'+v.bv+'|1">页面内播放</button> <a class="btn sm ghost" style="text-decoration:none" href="'+bvURL(v.bv)+'" target="_blank" rel="noopener">B站全集</a></span></div>'; }); PACK.tracks[tid].subjects.forEach(sj=>{ const v = VIDEOS[sj.name]; if(v && EPS[v.bv]) h += epsDirHTML(sj.name, v.bv); }); h += '<a class="vrow" href="https://www.smartedu.cn" target="_blank" rel="noopener"><span>▶ 国家智慧教育平台（官方免费）</span><span class="mut">smartedu.cn ›</span></a></div>'; PACK.tracks[tid].subjects.forEach(sj=>{ h += '<div class="subj"><h3>'+esc(sj.name)+'</h3>'; sj.units.forEach(u=>{ const done = !!S.done[u.id]; const open = S.openUid===u.id; h += '<div class="unit'+(open?" open":"")+'"><div class="row" data-open="'+u.id+'"><button class="chk'+(done?" done":"")+'" data-done="'+u.id+'">'+(done?"✓":"")+'</button><div class="tt"><b>'+esc(u.t)+'</b>'+(u.fw?' <span class="tag fw">框架 · 题库二期</span>':"")+'<div class="mut">预计 '+u.min+' 分钟</div></div><span class="mut">'+(open?"收起":"展开")+'</span></div><div class="body">'+(open?unitBody(tid,sj.name,u):"")+'</div></div>'; }); h += '</div>'; }); return h; }
 
 function vWrong(){ const tid = S.track; const list = S.wrong.filter(w=>w.tid===tid); let h = '<div class="card"><h2>错题本（'+list.length+'）</h2>'; if(!list.length) h += '<div class="empty">还没有错题。做练习时答错的题会自动记到这里，答对一次就会移出。</div>'; list.forEach(w=>{ const f = findUnit(w.tid, w.uid); if(!f) return; h += '<div style="padding:8px 0;border-bottom:1px dashed var(--line)"><span class="tag">'+esc(f.sj.split(" · ")[0])+'</span><span class="mut">'+esc(f.u.t)+'</span>'+ qHTML(w.tid, f.u, w.qi, true) +'</div>'; }); return h+'</div>'; }
 
@@ -2054,11 +2097,13 @@ function vQuiz(){ const tid = S.track; let h = '<div class="card"><h2>刷题 · 
  return h; }
 function bind(){
 
+ document.querySelectorAll("[data-uep]").forEach(b=>b.onclick=()=>{ const parts=b.dataset.uep.split("|"); const box=document.getElementById("up-"+parts[2]); if(box) box.innerHTML='<div class="player"><iframe src="'+bvEmbed(parts[0], parts[1])+'" allowfullscreen="true" scrolling="no"></iframe></div>'; });
+
  document.querySelectorAll("[data-toguide]").forEach(b=>b.onclick=()=>{ S.view="guide"; save(); render(); window.scrollTo(0,0); });
  document.querySelectorAll("[data-goto]").forEach(b=>b.onclick=()=>{ const uid=b.dataset.goto; for(const tk of Object.keys(PACK.tracks)){ if(findUnit(tk,uid)){ S.track=tk; break; } } S.openUid=uid; S.view="course"; save(); render(); window.scrollTo(0,0); });
  document.querySelectorAll("[data-gt]").forEach(ob=>ob.onclick=()=>{ const parts=ob.dataset.gt.split("|"); const st=GUIDE[+parts[0]]; const oi=+parts[1]; const box=ob.closest(".gtest"); const why=box.querySelector(".why"); box.querySelectorAll(".opt").forEach(x=>x.classList.remove("ok","bad")); if(oi===st.test.a){ ob.classList.add("ok"); why.textContent="答对了。"+st.test.why; } else { ob.classList.add("bad"); box.querySelectorAll(".opt")[st.test.a].classList.add("ok"); why.textContent="再想想。"+st.test.why; } why.classList.add("show"); });
- document.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>{ const box=document.getElementById("playerBox"); if(box) box.innerHTML='<div class="player"><iframe src="'+bvEmbed(b.dataset.play)+'" allowfullscreen="true" scrolling="no"></iframe></div>'; });
- document.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>{ const box=document.getElementById("playerBox"); if(box) box.innerHTML='<div class="player"><iframe src="'+bvEmbed(b.dataset.play)+'" allowfullscreen="true" scrolling="no"></iframe></div>'; });
+ document.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>{ const box=document.getElementById("playerBox"); if(box) box.innerHTML='<div class="player"><iframe src="'+(function(){ const pp=b.dataset.play.split("|"); return bvEmbed(pp[0], pp[1]); })()+'" allowfullscreen="true" scrolling="no"></iframe></div>'; });
+ document.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>{ const box=document.getElementById("playerBox"); if(box) box.innerHTML='<div class="player"><iframe src="'+(function(){ const pp=b.dataset.play.split("|"); return bvEmbed(pp[0], pp[1]); })()+'" allowfullscreen="true" scrolling="no"></iframe></div>'; });
  document.querySelectorAll("[data-quiz]").forEach(b=>b.onclick=()=>{ const parts=b.dataset.quiz.split("|"); startQuiz(parts[0], parts[1]); });
  const qAgain=document.getElementById("qAgain"); if(qAgain) qAgain.onclick=()=>{ Q=null; render(); };
  const qQuit=document.getElementById("qQuit"); if(qQuit) qQuit.onclick=()=>{ Q=null; S.view="course"; save(); render(); };
