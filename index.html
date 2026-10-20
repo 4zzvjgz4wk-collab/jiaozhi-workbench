@@ -26,6 +26,14 @@ main{max-width:720px;margin:0 auto;padding:14px 14px 0}
 .task .tt{flex:1}
 .task .tt b{font-size:14.5px}
 .tag{display:inline-block;font-size:11px;color:var(--blue-d);background:var(--soft);border-radius:6px;padding:2px 7px;margin-right:6px;vertical-align:1px}
+.tag.pr1{background:#fde8e0;color:#b3541e}
+.tag.pr2{background:#e3edfb;color:#1c5fc2}
+.tag.pr3{background:#eef0f3;color:#68707d}
+.legend{margin-top:8px;font-size:13px;line-height:2}
+.restitle{margin-top:10px;font-weight:700}
+.resrow{display:block;padding:7px 0;font-size:14.5px}
+.resrow input{width:17px;height:17px;vertical-align:-3px}
+.cmdhint{background:#eef6ee;border:1px solid #bcd8bc;border-radius:10px;padding:8px 11px;font-size:13.5px;margin-bottom:10px}
 .tag.fw{color:#a34d00;background:#fff3e6}
 .chk{width:24px;height:24px;border-radius:50%;border:2px solid #c4cbdd;background:#fff;flex:none;margin-top:1px;font-size:14px;color:#fff;line-height:1}
 .chk.done{background:var(--ok);border-color:var(--ok)}
@@ -1942,7 +1950,7 @@ let MEM = null;
 function lsGet(){ try{ return localStorage.getItem(LS_KEY); }catch(e){ return MEM; } }
 function lsSet(v){ MEM = v; try{ localStorage.setItem(LS_KEY, v); }catch(e){} }
 let S = load();
-function load(){ try{ const s = JSON.parse(lsGet()); if(s && s.track) return s; }catch(e){} return {track:"junior", view:"today", done:{}, wrong:[], weekly:300, openUid:null}; }
+function load(){ try{ const s = JSON.parse(lsGet()); if(s && s.track) return s; }catch(e){} return {track:"junior", view:"today", done:{}, wrong:[], weekly:300, openUid:null, res:[]}; }
 function save(){ lsSet(JSON.stringify(S)); }
 function weekKey(d){ d = d||new Date(); const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const day = (dt.getUTCDay()+6)%7; dt.setUTCDate(dt.getUTCDate()-day+3); const firstThu = new Date(Date.UTC(dt.getUTCFullYear(),0,4)); const fday = (firstThu.getUTCDay()+6)%7; firstThu.setUTCDate(firstThu.getUTCDate()-fday+3); return dt.getUTCFullYear()+"W"+String(1+Math.round((dt-firstThu)/(7*864e5))).padStart(2,"0"); }
 function trackUnits(tid){ const out=[]; PACK.tracks[tid].subjects.forEach(sj=>sj.units.forEach(u=>out.push({sj:sj.name,u}))); return out; }
@@ -2046,7 +2054,7 @@ function lecHTML(u, navHTML){
 }
 function panoHTML(){
   const sj = K2; let h = '<div class="card pano"><h2>全景图 · 科目二（样本：由内容包自动生成）</h2><div class="mut">点开任意单元看它的要点枝叶；正式版将按同样方式生成全部科目。点「去学」直达单元讲义。</div>';
-  sj.units.forEach(u=>{ h += '<details><summary>'+esc(u.t)+' <span class="mut" style="font-weight:400">（'+u.min+' 分钟）</span></summary><div class="pbody"><ul>'+u.pts.map(p=>'<li class="leaf">'+esc(p)+'</li>').join("")+'</ul><button class="btn sm" data-goto="'+u.id+'">去学这个单元</button></div></details>'; });
+  sj.units.forEach(u=>{ h += '<details><summary>'+esc(u.t)+prTag(u.id)+' <span class="mut" style="font-weight:400">（'+u.min+' 分钟）</span></summary><div class="pbody"><ul>'+u.pts.map(p=>'<li class="leaf">'+esc(p)+'</li>').join("")+'</ul><button class="btn sm" data-goto="'+u.id+'">去学这个单元</button></div></details>'; });
   return h + '</div>';
 }
 function vGuide(){
@@ -2063,17 +2071,44 @@ function render(){ renderTracks(); renderNav(); const v = document.getElementByI
 function qHTML(tid, u, qi, inWrong){ const q = u.qs[qi]; const key = tid+"|"+u.id+"|"+qi; return '<div class="q" data-qkey="'+key+'"><p>'+(qi+1)+'. '+esc(q.q)+'</p>'+ q.opts.map((o,i)=>'<button class="opt" data-oi="'+i+'">'+esc(o)+'</button>').join("") + '<div class="why"></div></div>'; }
 function unitBody(tid, sjName, u){ const link = videoBlock(tid, sjName, u); if(u.lec){ const sj = PACK.tracks[tid].subjects.find(s=>s.name===sjName); const ix = sj? sj.units.findIndex(x=>x.id===u.id) : -1; let nav=""; if(sj && ix>=0){ const pv = sj.units[ix-1], nx = sj.units[ix+1]; nav = '<div class="unitnav">'+(pv? '<button class="btn sm ghost" data-go="'+pv.id+'">‹ 上一单元</button>' : '<span></span>')+(nx? '<button class="btn sm ghost" data-go="'+nx.id+'">下一单元 ›</button>' : '<span></span>')+'</div>'; } return link + lecHTML(u, nav) + '<div class="lecsec"><h4>单元练习</h4></div>' + u.qs.map((q,qi)=>qHTML(tid,u,qi,false)).join(""); } return link + '<ul>'+u.pts.map(p=>'<li>'+esc(p)+'</li>').join("")+'</ul>' + u.qs.map((q,qi)=>qHTML(tid,u,qi,false)).join(""); }
 
+
+/* ============ 指挥层一期：单元优先级＋资源勾选（2026-10-20 殿下拍板） ============ */
+/* 优先级口径：按分值占比与历年考频的经验排序（1 先学·必学 / 2 高频 / 3 后置），无全量真题统计背书，对外只写「按考频与分值经验排序」 */
+const PRIO = { k1a:1,k1b:1,k1c:1,k1d:2,k1e:1,k1f:3,k1g:3,k1h:2,k1i:3,k1j:3,k1k:1,
+k2a:2,k2b:3,k2c:2,k2d:1,k2e:2,k2f:1,k2g:1,k2h:2,k2i:2,k2j:2,k2k:3,
+k3a:2,k3b:2,k3c:3,k3d:2,k3e:2,k3f:2,k3g:3,k3h:1,k3i:1,k3j:1,k3k:2,
+k3sa:1,k3sb:2,k3sc:1,k3sd:2,k3se:3,
+p1a:1,p1b:1,p1c:1,p1d:3,p1e:2,p1f:1,
+p2a:2,p2b:1,p2c:2,p2d:2,p2e:1,p2f:1,p2g:2,p2h:3 };
+function prTag(uid){ const p = PRIO[uid]||2; return p===1?' <span class="tag pr1">先学</span>':(p===2?' <span class="tag pr2">高频</span>':' <span class="tag pr3">后置</span>'); }
+const RESOPTS = [["fenbi","我有粉笔 App / 粉笔的课"],["book","我买了教材（中公 / 山香 / 粉笔教材等）"],["only","我手头没别的，主要就用这个工作台"]];
+function cmdCard(){
+  const res = S.res||[];
+  let h = '<div class="card cmd"><h2>备考指挥台</h2><div class="mut">你买的书和课不用换，这里帮你排先后。每个单元都标了优先级，今日任务会按优先级出；粉笔 B 站课的集数已经逐个单元对齐，在每个单元里就能播对的那一集。教材的章节对照在下一期补，先按单元名在书上找同名章节。</div>';
+  h += '<div class="legend">'+prTag("k1a")+' 先学·必学：分值大、年年考，先啃这些 '+prTag("k2a")+' 高频：常考但排第二批 '+prTag("k1f")+' 后置：范围散或分值低（如文化素养），有余力再碰</div>';
+  h += '<div class="restitle">我手头有这些资料（勾上，今日任务按你的资料排）：</div>';
+  RESOPTS.forEach(o=>{ h += '<label class="resrow"><input type="checkbox" data-res="'+o[0]+'"'+(res.includes(o[0])?" checked":"")+'> '+esc(o[1])+'</label>'; });
+  return h + '</div>';
+}
+function cmdHint(){
+  const res = S.res||[];
+  if(res.includes("fenbi") || res.includes("book")) return '<div class="cmdhint">指挥提示：你勾了手头有课或教材——今日任务已按优先级排，每个单元里标好了对应的粉笔集数，先看集、再学要点、最后刷题。</div>';
+  if(res.includes("only")) return '<div class="cmdhint">指挥提示：你主要用工作台学——今日任务已按优先级排：先看单元视频集、再学讲义、最后刷题。</div>';
+  return '<div class="cmdhint">指挥提示：去课程页顶部的「备考指挥台」勾一下你手头有的资料，今日任务会按你的资料和单元优先级来排。</div>';
+}
+
 function vToday(){ const tid = S.track; const days = daysToExam(); const hint = '<div class="card" style="border-color:#ffd9c2;background:#fff8f3"><b>打开方式（重要）</b><div class="mut">请把本文件存到手机里、用浏览器（Safari）打开使用：在聊天应用里直接点开附件，按钮可能点不动、进度也存不住。用浏览器打开就没有这些问题。</div></div>'; const wm = weekMinutes(tid); const pct = Math.min(100, Math.round(wm/Math.max(1,S.weekly)*100)); const daily = Math.max(15, Math.round(S.weekly/7/5)*5); let acc=0; const queue=[]; for(const item of trackUnits(tid)){ if(S.done[item.u.id]) continue; queue.push(item); acc+=item.u.min; if(acc>=daily) break; }
+ queue.sort((a,b)=> (PRIO[a.u.id]||2)-(PRIO[b.u.id]||2));
  const tp = totalProgress(tid);
  let h = hint + '<div class="card guide-banner" data-toguide="1"><b>第一次打开？先看导览 ›</b><div class="mut">六站把整个考试串起来：有几科、每科怎么学、设计题为什么是分水岭，还有一张科目二全景图。</div></div>' + '<div class="card"><h2>笔试倒计时</h2><div><span class="big accent">'+days+'</span> 天 <span class="mut">（2027 年 3 月笔试，日期暂定，以官方公告为准；报名约在 2027 年 1 月）</span></div>';
  h += '<div class="mut" style="margin-top:6px">本周已学 '+wm+' 分钟 / 目标 '+S.weekly+' 分钟 · '+PACK.tracks[tid].label+'总进度 '+tp.d+'/'+tp.n+' 单元（'+tp.pct+'%）</div><div class="bar"><i style="width:'+pct+'%"></i></div></div>';
- h += '<div class="card"><h2>今日任务（约 '+daily+' 分钟）</h2>';
+ h += cmdHint(); h += '<div class="card"><h2>今日任务（约 '+daily+' 分钟）</h2>';
  if(!queue.length) h += '<div class="empty">这个方向的单元全学完了，去错题本复盘吧。</div>';
- queue.forEach(({sj,u})=>{ h += '<div class="task"><button class="chk" data-done="'+u.id+'"></button><div class="tt"><span class="tag">'+esc(sj.split(" · ")[0])+'</span>'+(u.fw?'<span class="tag fw">框架</span>':"")+'<b>'+esc(u.t)+'</b><div class="mut">预计 '+u.min+' 分钟</div></div><button class="btn sm ghost" data-go="'+u.id+'">去学习</button></div>'; });
+ queue.forEach(({sj,u})=>{ h += '<div class="task"><button class="chk" data-done="'+u.id+'"></button><div class="tt"><span class="tag">'+esc(sj.split(" · ")[0])+'</span>'+(u.fw?'<span class="tag fw">框架</span>':"")+prTag(u.id)+'<b>'+esc(u.t)+'</b><div class="mut">预计 '+u.min+' 分钟</div></div><button class="btn sm ghost" data-go="'+u.id+'">去学习</button></div>'; });
  h += '<div class="mut" style="margin-top:8px">没学完不用补，明天它还会排在最前面。学完记得在课程页做单元后面的练习题。</div></div>';
  return h; }
 
-function vCourse(){ const tid = S.track; let h = '<div class="card"><h2>视频课（页面内直接看）</h2><div class="mut">点“在页面内播放”就在下方看，不用跳走；也可以去B站打开全集。先看视频，再学下面的要点和练习。</div><div id="playerBox"></div>'; PACK.tracks[tid].subjects.forEach(sj=>{ const v = VIDEOS[sj.name]; if(!v) return; h += '<div class="vrow"><span>▶ '+esc(sj.name)+'<br><span class="mut">'+esc(v.t)+'</span></span><span><button class="btn sm" data-play="'+v.bv+'|1">页面内播放</button> <a class="btn sm ghost" style="text-decoration:none" href="'+bvURL(v.bv)+'" target="_blank" rel="noopener">B站全集</a></span></div>'; }); PACK.tracks[tid].subjects.forEach(sj=>{ const v = VIDEOS[sj.name]; if(v && EPS[v.bv]) h += epsDirHTML(sj.name, v.bv); }); h += '<a class="vrow" href="https://www.smartedu.cn" target="_blank" rel="noopener"><span>▶ 国家智慧教育平台（官方免费）</span><span class="mut">smartedu.cn ›</span></a></div>'; PACK.tracks[tid].subjects.forEach(sj=>{ h += '<div class="subj"><h3>'+esc(sj.name)+'</h3>'; sj.units.forEach(u=>{ const done = !!S.done[u.id]; const open = S.openUid===u.id; h += '<div class="unit'+(open?" open":"")+'"><div class="row" data-open="'+u.id+'"><button class="chk'+(done?" done":"")+'" data-done="'+u.id+'">'+(done?"✓":"")+'</button><div class="tt"><b>'+esc(u.t)+'</b>'+(u.fw?' <span class="tag fw">框架 · 题库二期</span>':"")+'<div class="mut">预计 '+u.min+' 分钟</div></div><span class="mut">'+(open?"收起":"展开")+'</span></div><div class="body">'+(open?unitBody(tid,sj.name,u):"")+'</div></div>'; }); h += '</div>'; }); return h; }
+function vCourse(){ const tid = S.track; let h = cmdCard() + '<div class="card"><h2>视频课（页面内直接看）</h2><div class="mut">点“在页面内播放”就在下方看，不用跳走；也可以去B站打开全集。先看视频，再学下面的要点和练习。</div><div id="playerBox"></div>'; PACK.tracks[tid].subjects.forEach(sj=>{ const v = VIDEOS[sj.name]; if(!v) return; h += '<div class="vrow"><span>▶ '+esc(sj.name)+'<br><span class="mut">'+esc(v.t)+'</span></span><span><button class="btn sm" data-play="'+v.bv+'|1">页面内播放</button> <a class="btn sm ghost" style="text-decoration:none" href="'+bvURL(v.bv)+'" target="_blank" rel="noopener">B站全集</a></span></div>'; }); PACK.tracks[tid].subjects.forEach(sj=>{ const v = VIDEOS[sj.name]; if(v && EPS[v.bv]) h += epsDirHTML(sj.name, v.bv); }); h += '<a class="vrow" href="https://www.smartedu.cn" target="_blank" rel="noopener"><span>▶ 国家智慧教育平台（官方免费）</span><span class="mut">smartedu.cn ›</span></a></div>'; PACK.tracks[tid].subjects.forEach(sj=>{ h += '<div class="subj"><h3>'+esc(sj.name)+'</h3>'; sj.units.forEach(u=>{ const done = !!S.done[u.id]; const open = S.openUid===u.id; h += '<div class="unit'+(open?" open":"")+'"><div class="row" data-open="'+u.id+'"><button class="chk'+(done?" done":"")+'" data-done="'+u.id+'">'+(done?"✓":"")+'</button><div class="tt"><b>'+esc(u.t)+'</b>'+(u.fw?' <span class="tag fw">框架 · 题库二期</span>':"")+prTag(u.id)+'<div class="mut">预计 '+u.min+' 分钟</div></div><span class="mut">'+(open?"收起":"展开")+'</span></div><div class="body">'+(open?unitBody(tid,sj.name,u):"")+'</div></div>'; }); h += '</div>'; }); return h; }
 
 function vWrong(){ const tid = S.track; const list = S.wrong.filter(w=>w.tid===tid); let h = '<div class="card"><h2>错题本（'+list.length+'）</h2>'; if(!list.length) h += '<div class="empty">还没有错题。做练习时答错的题会自动记到这里，答对一次就会移出。</div>'; list.forEach(w=>{ const f = findUnit(w.tid, w.uid); if(!f) return; h += '<div style="padding:8px 0;border-bottom:1px dashed var(--line)"><span class="tag">'+esc(f.sj.split(" · ")[0])+'</span><span class="mut">'+esc(f.u.t)+'</span>'+ qHTML(w.tid, f.u, w.qi, true) +'</div>'; }); return h+'</div>'; }
 
@@ -2097,6 +2132,7 @@ function vQuiz(){ const tid = S.track; let h = '<div class="card"><h2>刷题 · 
  return h; }
 function bind(){
 
+ document.querySelectorAll("[data-res]").forEach(c=>c.onchange=()=>{ const v=c.dataset.res; S.res = S.res||[]; if(c.checked){ if(!S.res.includes(v)) S.res.push(v); } else { S.res = S.res.filter(x=>x!==v); } save(); });
  document.querySelectorAll("[data-uep]").forEach(b=>b.onclick=()=>{ const parts=b.dataset.uep.split("|"); const box=document.getElementById("up-"+parts[2]); if(box) box.innerHTML='<div class="player"><iframe src="'+bvEmbed(parts[0], parts[1])+'" allowfullscreen="true" scrolling="no"></iframe></div>'; });
 
  document.querySelectorAll("[data-toguide]").forEach(b=>b.onclick=()=>{ S.view="guide"; save(); render(); window.scrollTo(0,0); });
@@ -2116,7 +2152,7 @@ function bind(){
  const whs=document.getElementById("whSave"); if(whs) whs.onclick=()=>{ const v=parseFloat(document.getElementById("wh").value); if(v>0){ S.weekly=Math.round(v*60); save(); render(); } };
  const cp=document.getElementById("cp"); if(cp) cp.onclick=()=>{ const t=document.getElementById("codeBox"); t.select(); try{ document.execCommand("copy"); cp.textContent="已复制"; }catch(e){ cp.textContent="已选中，长按复制"; } setTimeout(()=>cp.textContent="复制进度码",1500); };
  const ib=document.getElementById("impBtn"); if(ib) ib.onclick=()=>{ try{ const v=document.getElementById("imp").value.trim(); const obj=JSON.parse(decodeURIComponent(escape(atob(v)))); if(obj && obj.track){ S=obj; save(); render(); alert("导入成功"); } }catch(e){ alert("进度码不对，检查一下有没有复制全"); } };
- const rs=document.getElementById("reset"); if(rs) rs.onclick=()=>{ if(confirm("确定清空全部进度吗？")){ try{ localStorage.removeItem(LS_KEY); }catch(e){} MEM=null; S={track:"junior", view:"today", done:{}, wrong:[], weekly:300, openUid:null}; render(); } };
+ const rs=document.getElementById("reset"); if(rs) rs.onclick=()=>{ if(confirm("确定清空全部进度吗？")){ try{ localStorage.removeItem(LS_KEY); }catch(e){} MEM=null; S={track:"junior", view:"today", done:{}, wrong:[], weekly:300, openUid:null, res:[]}; render(); } };
 }
 render();
 </script>
