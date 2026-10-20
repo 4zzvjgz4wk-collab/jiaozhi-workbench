@@ -63,6 +63,42 @@ textarea{height:86px;font-size:12px}
 .vrow:last-of-type{border-bottom:none}
 .player{position:relative;padding-top:56.25%;background:#000;border-radius:10px;overflow:hidden;margin:10px 0 4px}
 .player iframe{position:absolute;left:0;top:0;width:100%;height:100%;border:0}
+
+/* ===== 样本新增：导览 / 全景图 / 讲义层 ===== */
+.guide-banner{cursor:pointer;border-color:#bcd6ff;background:#f2f7ff}
+.guide-banner b{color:#1c5fc2}
+.station{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.station .sno{display:inline-block;background:#1c5fc2;color:#fff;border-radius:8px;font-size:12px;padding:1px 8px;margin-bottom:6px}
+.station h3{font-size:16px;margin-bottom:4px}
+.station .rule{background:#f2f7ff;border-left:4px solid #1c5fc2;padding:8px 10px;border-radius:0 10px 10px 0;margin:8px 0;font-size:14px}
+.station .diag{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}
+.station .chip{background:#eef3fa;border:1px solid #d5e2f2;border-radius:9px;padding:5px 9px;font-size:13px}
+.station .plus{color:#8aa5c4;font-weight:700}
+.gtest{border-top:1px dashed var(--line);margin-top:10px;padding-top:10px}
+.gtest .opt{display:block;width:100%;text-align:left;margin-top:6px}
+.pano details{border:1px solid var(--line);border-radius:10px;margin:6px 0;background:#fbfcfe}
+.pano summary{cursor:pointer;padding:9px 12px;font-weight:600;list-style:none}
+.pano summary::-webkit-details-marker{display:none}
+.pano .leaf{margin:2px 0 2px 18px;font-size:13.5px;color:#44506b;list-style:disc}
+.pano .pbody{padding:2px 12px 10px}
+.locator{background:#eef3fa;border:1px solid #d5e2f2;border-radius:10px;padding:8px 11px;font-size:13px;color:#33507c;margin-bottom:10px}
+.lecsec{margin:12px 0}
+.lecsec h4{font-size:15px;color:#1c5fc2;margin-bottom:4px}
+.lecsec p{font-size:14.5px;line-height:1.75}
+.exbox{background:#f6fbf3;border:1px solid #cfe6c3;border-radius:12px;padding:11px 13px;margin:12px 0}
+.exbox b{color:#39702a}
+.trapbox{background:#fff7f2;border:1px solid #f3d3bd;border-radius:12px;padding:11px 13px;margin:12px 0}
+.trapbox b{color:#b3541e}
+.trapbox li,.exbox li{margin-left:18px;font-size:14px;line-height:1.7}
+.mmap{border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin:10px 0;background:#fff}
+.mmap .mmroot{font-weight:800;font-size:15px;text-align:center;background:#1c5fc2;color:#fff;border-radius:9px;padding:7px 8px}
+.mmap .mmkids{display:flex;flex-direction:column;gap:8px;margin-top:9px}
+.mmap .mmbr{border:1px solid #d5e2f2;border-left:4px solid #1c5fc2;border-radius:9px;padding:7px 10px;background:#fbfcfe}
+.mmap .mmbr b{font-size:14px}
+.mmap .mmleaf{display:inline-block;background:#eef3fa;border-radius:7px;padding:2px 8px;font-size:12.5px;margin:4px 4px 0 0;color:#33507c}
+.unitnav{display:flex;justify-content:space-between;gap:8px;margin-top:14px}
+.samplnote{border-color:#ffd9c2;background:#fff8f3}
+
 </style>
 </head>
 <body>
@@ -74,6 +110,7 @@ textarea{height:86px;font-size:12px}
 <main id="view"></main>
 <nav id="nav">
   <button data-v="today" class="on">今日</button>
+  <button data-v="guide">导览</button>
   <button data-v="course">课程</button>
   <button data-v="quiz">刷题</button>
   <button data-v="wrong">错题本</button>
@@ -1866,14 +1903,106 @@ function totalProgress(tid){ const us = trackUnits(tid); const d = us.filter(({u
 
 function renderTracks(){ const el = document.getElementById("tracks"); el.innerHTML = Object.keys(PACK.tracks).map(k=>'<button data-t="'+k+'" class="'+(S.track===k?"on":"")+'">'+PACK.tracks[k].label+'</button>').join(""); el.querySelectorAll("button").forEach(b=>b.onclick=()=>{ S.track=b.dataset.t; S.openUid=null; save(); render(); }); }
 function renderNav(){ document.querySelectorAll("#nav button").forEach(b=>{ b.classList.toggle("on", b.dataset.v===S.view); b.onclick=()=>{ S.view=b.dataset.v; save(); render(); }; }); }
-function render(){ renderTracks(); renderNav(); const v = document.getElementById("view"); if(S.view==="today") v.innerHTML = vToday(); else if(S.view==="course") v.innerHTML = vCourse(); else if(S.view==="quiz") v.innerHTML = vQuiz(); else if(S.view==="wrong") v.innerHTML = vWrong(); else v.innerHTML = vMe(); bind(); }
+
+/* ============ 样本：导览 + 全景图 + 讲义层（v2.1 样本，确认后按此批量） ============ */
+const GUIDE = [
+ {no:"第 1 站", t:"考试全家福：先看清有几科、各占多少分", rule:"先看结构再谈学法。不知道分值分布就排计划，等于蒙着眼睛跑步。",
+  body:"以初中音乐为例：笔试三科各 150 分。科目一综合素质（选择＋材料分析＋写作）、科目二教育知识与能力（选择＋辨析＋简答＋材料）、科目三音乐学科（选择＋简答/论述＋案例分析＋教学设计）。其中科目三的教学设计题一块就占约四分之一到三分之一的分量，是三科里最能靠方法拉开差距的部分。三科的复习权重和打法完全不同，导览后面每一站拆一科。",
+  diag:["科目一 · 综合素质 150","科目二 · 教育知识与能力 150","科目三 · 音乐学科 150"],
+  goto:{uid:"k1a", label:"深挖：从科目一第一个单元开始"}, 
+  test:{q:"初中音乐笔试一共考几科？", opts:["2 科","3 科","4 科"], a:1, why:"三科：综合素质、教育知识与能力、音乐学科知识与教学能力，各 150 分。"}},
+ {no:"第 2 站", t:"科目一怎么学：背要点 + 套框架 + 练作文结构", rule:"科目一不拼理解深度，拼的是覆盖面和答题套路。",
+  body:"职业理念、法律法规、职业道德三块靠要点记忆＋材料题框架（先表态、再分点、回扣材料）；文化素养靠日常积累、性价比最低，最后再刷；基本能力里的逻辑题有固定解法；作文用教育主题议论文结构，考前练够 3 篇成型即可。这一科最忌讳的是平均用力。",
+  diag:["理念/法规/道德：背要点","材料题：套框架","作文：固定结构","文化素养：最后刷"],
+  goto:{uid:"k1c", label:"深挖：教育法律法规（上）"}},
+ {no:"第 3 站", t:"科目二知识地图：一张网，不是散点", rule:"科二先立主干再挂枝叶：教育基础是地基，学习心理是主干，教学与德育是枝叶。",
+  body:"科目二最容易学成一盘散沙。正确顺序是：先过教育基础（知道教育是什么、制度怎么来），再主攻心理部分（学习理论、发展心理、心理辅导，这三块是选择题和简答题的大户），最后教学、德育、班级管理按原则清单记。样本单元《学习心理：认知与学习理论》就是主干上最粗的一根，先去把那一单元的讲义和思维导图看完，你就摸到本科目的学法了。",
+  diag:["教育基础（地基）","学习心理（主干）","发展心理 · 心理辅导","教学 · 德育 · 班级管理（枝叶）"],
+  goto:{uid:"k2f", label:"深挖：样本讲义《学习心理：认知与学习理论》"},
+  test:{q:"提出“有意义接受学习”的心理学家是？", opts:["布鲁纳","奥苏贝尔","加涅"], a:1, why:"奥苏贝尔：有意义接受学习＋先行组织者；布鲁纳对应的是发现学习，两个人是选择题的经典对子。"}},
+ {no:"第 4 站", t:"音乐科三长什么样：学科知识打底，教学设计定胜负", rule:"科三上半场比谁乐理史论扎实，下半场比谁会写一份能落地的教案。",
+  body:"学科知识部分（乐理、视唱练耳、中西方音乐史、民族民间音乐）靠的是你本科四年的存量，工作台帮你按考试口径重新串一遍；真正的分水岭在后面：案例分析题看你能不能诊断课堂问题，教学设计题看你能不能把目标、过程、板书写规范。这也是音乐专业考生最容易轻敌、丢分最冤的一块。",
+  diag:["乐理 · 练耳","中外音乐史","民族民间音乐","案例分析","教学设计（分水岭）"],
+  goto:{uid:"k3a", label:"深挖：基本乐理（上）"}},
+ {no:"第 5 站", t:"教学设计万能骨架：任何课题都往六格里填", rule:"教材分析、学情分析、教学目标、重难点、教学过程、板书设计——六格填满，设计题就及格了；填出细节，才上优秀档。",
+  body:"阅卷人看设计题，先看骨架全不全，再看目标写得规不规范。目标撰写是骨架里最容易翻车的格子：主体必须是学生、动词必须可观察可评价。样本单元《音乐教学设计：教材分析与目标撰写》把 ABCD 法拆开细讲，还带一条不规范目标的现场改写，去看完再回来做这站的自测。",
+  diag:["教材分析","学情分析","教学目标（ABCD）","重难点","教学过程","板书设计"],
+  goto:{uid:"k3i", label:"深挖：样本讲义《教材分析与目标撰写》"},
+  test:{q:"下列哪条教学目标最规范？", opts:["使学生了解歌曲的创作背景","培养学生对民族音乐的热爱","学生能独立视唱乐谱片段，并说出乐曲的节拍与情绪特点"], a:2, why:"主体是学生、行为可观察可评价；前两条一条主体错位、一条不可测量。"}},
+ {no:"第 6 站", t:"从笔试到面试：时间线与备考节奏", rule:"笔试过线只是入场券。面试的试讲，本质就是把科三的教学设计站着讲出来——笔试阶段攒的设计能力，面试直接兑现。",
+  body:"节奏参考：现在到报名（约 2027 年 1 月）打地基，按今日任务推进单元；报名后到笔试（约 3 月）刷题与错题回炉为主；笔试出成绩后到面试（约 5 月）转试讲训练。工作台的今日任务会按这个节奏排，你只管跟着走。所有日期以官方公告为准，公告出来后第一时间校准。",
+  diag:["现在–1月：打地基","1月：报名","3月：笔试","5月：面试试讲"],
+  goto:{uid:"k3k", label:"深挖：教学评价与试讲准备"}}
+];
+
+const SAMPLE_LEC = {
+k2f:{ pos:"在地图上的位置：导览第 3 站 · 科目二知识地图 › 主干「学习心理」｜全景图：科目二 › 中学生学习心理 › 本单元",
+ map:{t:"学习理论与学习心理（一张图看懂）", kids:[
+   {t:"行为主义：学习 = 刺激与反应搭线", kids:["巴甫洛夫 · 经典条件作用：信号出现，反应跟着来","桑代克 · 试误说：在错误里试出正确，练习律＋效果律","斯金纳 · 操作条件作用：行为后面的结果决定行为去留（强化/惩罚）"]},
+   {t:"认知派：学习 = 脑内结构重组", kids:["布鲁纳 · 发现学习：自己发现学科的基本结构","奥苏贝尔 · 有意义接受学习：新知识挂到旧知识上（先行组织者）","加涅 · 信息加工：学习是编码—存储—提取的流水线"]},
+   {t:"观察与动机：看会的、想学的", kids:["班杜拉 · 观察学习：注意—保持—再现—动机四过程","班杜拉 · 自我效能感：觉得自己能行，才会真的去做","成就动机与归因：把成败归因到努力，最可控"]},
+   {t:"迁移：学过的怎么用上", kids:["方向：顺向 / 逆向","关系：水平（同层）/ 垂直（上下层）","效果：正迁移（帮忙）/ 负迁移（捣乱）"]}]},
+ secs:[
+  {h:"这一单元到底在考什么", t:"这是科目二选择题和简答题的第一大户：给你一个课堂情境，让你判断背后的学习理论是哪一家；或者直接问某个概念是谁提的、是什么意思。备考要点不是背人名表，而是练「情境 → 理论」的翻译速度：看到关键词就能对号入座。"},
+  {h:"行为主义三人：行为后面的故事各不同", t:"巴甫洛夫的经典条件作用，关键看行为之前有没有「信号」：铃声一响狗就流口水，学习发生在刺激与刺激之间，情绪类学习（如一上台就紧张）多属此类。桑代克的试误说来自饿猫开笼子：学习是在反复试错中把正确动作「印刻」下来，练习律说练得多记得牢，效果律说有奖励的行为会被保留。斯金纳的操作条件作用正相反：行为先发生，结果决定它下次还出不出现——表扬（强化）让好行为变多，惩罚让行为减少，学校里发小红花、积分奖励都是这一派。考试区分口诀：前面有信号找巴甫洛夫，后面有结果找斯金纳，中间在试错找桑代克。"},
+  {h:"认知派三人：脑子不是黑箱，是图书馆", t:"认知派反对把人看成只会对刺激反应的机器。布鲁纳主张发现学习：让学生自己动手发现学科的基本结构，知识结构对了，迁移和记忆都跟着来，新课改的「探究学习」源头就在这。奥苏贝尔针锋相对又互补：接受学习也可以是有意义的，关键是新知识能不能挂到学生已有的知识结构（他叫「认知结构」）上，教师上课前先给一个「先行组织者」——一句搭建脚手架的导语，就是他的发明。加涅把学习看成信息加工：注意、编码、存储、提取像一条流水线，他的「九大教学事件」是教案设计里导入—呈现—练习顺序的理论来源。"},
+  {h:"动机与迁移：为什么学、学完怎么用", t:"班杜拉的观察学习补上最后一块：人不必事事亲历，看榜样怎么做也能学会，分注意、保持、动作再现、动机四步，教师做示范、同伴当榜样都是它。他还提出自我效能感——学生对「我能学会」的信心，直接决定他敢不敢下手、扛不扛得住挫折。迁移讲的是学过的知识怎么影响新学习：先学的帮后学的叫顺向迁移，反过来叫逆向；同一难度层面的（如学会钢琴再学电子琴）叫水平迁移，上下位概念之间（如先懂「节奏」再学「切分音」）叫垂直迁移；帮忙的是正迁移，捣乱的（如方言发音干扰普通话）是负迁移。"}],
+ ex:{t:"情境拆解（考试就这么考）：音乐课上，老师先完整范唱一遍（学生在看、在听），然后让进步最大的学生上台领唱，课后给领唱的小组加了积分。——范唱示范是班杜拉的观察学习（注意与保持）；让学生上台、给小组加分是斯金纳的正强化。答题时先找行为主体和触发点：看别人做 = 观察学习，行为之后有奖励 = 操作条件作用，两件事可以同框出现，分开标注即可。"},
+ traps:["经典条件作用 vs 操作条件作用搞反：看行为前面是「信号」还是后面有「结果」。","自我效能感是班杜拉提的，不是马斯洛；需要层次才是马斯洛。","布鲁纳 = 发现学习，奥苏贝尔 = 有意义接受学习，这对经典对子最爱对调出题。","水平/垂直迁移分不清：同一层是水平，上下层是垂直，别按难度大小猜。","惩罚 ≠ 负强化：负强化是拿走讨厌的东西来增加行为，仍然是「强化」。"]},
+
+k3i:{ pos:"在地图上的位置：导览第 5 站 · 教学设计万能骨架 › 第一格「教材与目标」｜全景图：科目三（初中音乐） › 教学设计 › 本单元",
+ map:{t:"一份教学设计怎么搭（一张图看懂）", kids:[
+   {t:"教材分析：三刀切下去", kids:["作品背景：作者、体裁、时代","音乐要素：旋律、节奏、力度、结构","单元位置：这课在整册里承什么上、启什么下"]},
+   {t:"学情分析：别写空话", kids:["已经会什么（前一课的存量）","卡在哪（音准？节奏？文化背景？）","兴趣点在哪（从哪儿勾进门）"]},
+   {t:"教学目标：ABCD 四要素", kids:["A 主体：必须是学生","B 行为：动词可观察可评价","C 条件：在什么情境下做到","D 程度：做到什么份上"]},
+   {t:"重难点：三个依据定", kids:["课程标准","教材内容","学生实际（学情）"]},
+   {t:"过程与板书：骨架的后半段", kids:["导入—新授—拓展—小结四段","板书留痕：课题、要素、结构图"]}]},
+ secs:[
+  {h:"为什么说设计题是科三的分水岭", t:"科目三前面考的是你的存量（乐理、史论背多背少），设计题考的是你能不能把一节课「造」出来。它的分值量级在整张卷里排第一梯队，而且答题有明确的采点结构：骨架完整先拿基础分，目标规范、过程有细节再往上走。更重要的是，这项能力面试试讲直接复用——笔试练的设计，面试站着讲出来就行。"},
+  {h:"教材分析：三刀切下去就够了", t:"第一刀切背景：作品的作者、体裁、创作时代与风格，用一两句交代它「是什么」。第二刀切要素：旋律走向、节奏特点、速度力度、曲式结构——这是音乐课区别于其他学科的命根子，必须写出具体的音乐要素，空谈情感等于没分析。第三刀切位置：这课在教材单元里承上启下什么，前一课学生学过什么、这一课为后面哪一课打底。阅卷人扫一眼这三段，就知道你是不是真的懂教材。"},
+  {h:"教学目标：ABCD 法逐项拆", t:"A（Audience）行为主体，必须是学生，所以「使学生……」「培养学生……」这类以教师为主语的句子一律不合格。B（Behavior）行为动词，必须可观察、可评价：能「演唱、说出、打出、分辨、创编」，不能单独用「了解、体会、感受」——这些词看不见摸不着，无法判断达没达到。C（Condition）行为条件：在什么情境下完成，如「在聆听两遍后」「借助节奏图谱」。D（Degree）表现程度：如「完整、准确地」「能说出至少两点」。另外注意新课标口径：目标围绕核心素养（审美感知、艺术表现、创意实践、文化理解）整合撰写，不要再把三维目标机械拆成三行凑数。"},
+  {h:"重难点怎么定：三个依据，缺一不可", t:"重点是课标要求全体学生必须掌握的核心内容，难点是学生以现有水平学起来吃力的地方。确定时同时看三样：课程标准（规定了必须到哪一步）、教材（这课的核心内容在哪）、学情（这批学生具体卡在哪）。常见错误是把「教师讲起来难」当成难点——难点永远是学生的学习难点，不是老师的教学难点。"}],
+ ex:{t:"现场改写（照着这个手感练）：原句「使学生了解《青春舞曲》的风格特点，培养热爱民族音乐的情感。」——问题：主体是老师、「了解」不可测、「培养情感」没法验收。改后：「学生能在聆听两遍后，说出歌曲的速度与情绪特点；能用拍手准确打出歌曲的典型节奏型，并随乐完整演唱。」主体回到学生，行为全部可观察，条件（聆听两遍）和程度（准确、完整）都在。考试写目标时默念：谁做、做什么、怎么做、做到啥份上。"},
+ traps:["目标主体写成教师：「使学生…」「让学生…」「教师引导学生…」开头基本判不规范。","动词不可测：「了解、知道、体会、感受、培养」单独成条最常见，也最冤。","三维目标机械分家：新课标按核心素养整合写，别再知识/技能/情感各凑一行。","重难点写反对象：难点是学生学不会的点，不是老师备课累的点。","教材分析只写情感不写要素：没有旋律、节奏、结构的分析，在音乐学科等于没写。"]}
+};
+
+function mmHTML(node){
+  let h = '<div class="mmap"><div class="mmroot">'+esc(node.t)+'</div><div class="mmkids">';
+  (node.kids||[]).forEach(k=>{ h += '<div class="mmbr"><b>'+esc(k.t)+'</b><br>'+(k.kids||[]).map(x=>'<span class="mmleaf">'+esc(x)+'</span>').join("")+'</div>'; });
+  return h + '</div></div>';
+}
+function lecHTML(u, navHTML){
+  const L = u.lec; if(!L) return "";
+  let h = '<div class="locator">📍 '+esc(L.pos)+'</div>';
+  h += '<div class="lecsec"><h4>考点速览</h4><ul>'+u.pts.map(p=>'<li>'+esc(p)+'</li>').join("")+'</ul></div>';
+  h += '<div class="lecsec"><h4>本单元思维导图</h4>'+mmHTML(L.map)+'</div>';
+  L.secs.forEach(s=>{ h += '<div class="lecsec"><h4>'+esc(s.h)+'</h4><p>'+esc(s.t)+'</p></div>'; });
+  h += '<div class="exbox"><b>例子 · 这样考</b><p style="font-size:14px;line-height:1.75;margin-top:4px">'+esc(L.ex.t)+'</p></div>';
+  h += '<div class="trapbox"><b>易错点清单</b><ul style="margin-top:4px">'+L.traps.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul></div>';
+  return h + (navHTML||"");
+}
+function panoHTML(){
+  const sj = K2; let h = '<div class="card pano"><h2>全景图 · 科目二（样本：由内容包自动生成）</h2><div class="mut">点开任意单元看它的要点枝叶；正式版将按同样方式生成全部科目。点「去学」直达单元讲义。</div>';
+  sj.units.forEach(u=>{ h += '<details><summary>'+esc(u.t)+' <span class="mut" style="font-weight:400">（'+u.min+' 分钟）</span></summary><div class="pbody"><ul>'+u.pts.map(p=>'<li class="leaf">'+esc(p)+'</li>').join("")+'</ul><button class="btn sm" data-goto="'+u.id+'">去学这个单元</button></div></details>'; });
+  return h + '</div>';
+}
+function vGuide(){
+  let h = '<div class="card samplnote"><b>样本说明</b><div class="mut">这是讲义层的样本版：导览六站已全量写出，第 3、5 站深挖链接的两个单元（k2f、k3i）配了完整讲义＋思维导图；全景图先用科目二做原型。殿下确认形态后，其余单元按同一标准批量补。</div></div>';
+  GUIDE.forEach((st,i)=>{ h += '<div class="station"><span class="sno">'+esc(st.no)+' · 导览</span><h3>'+esc(st.t)+'</h3><div class="rule">一条规律：'+esc(st.rule)+'</div><p style="font-size:14.5px;line-height:1.75">'+esc(st.body)+'</p><div class="diag">'+st.diag.map((c,j)=>(j?'<span class="plus">→</span>':"")+'<span class="chip">'+esc(c)+'</span>').join("")+'</div>'; if(st.goto) h += '<button class="btn sm" data-goto="'+st.goto.uid+'">'+esc(st.goto.label)+' ›</button>'; if(st.test){ const q = st.test; h += '<div class="gtest"><b>本站自测</b><p style="margin-top:4px">'+esc(q.q)+'</p>'+q.opts.map((o,oi)=>'<button class="opt" data-gt="'+i+'|'+oi+'">'+esc(o)+'</button>').join("")+'<div class="why"></div></div>'; } h += '</div>'; });
+  return h + panoHTML();
+}
+
+/* 样本讲义挂接 */
+Object.keys(SAMPLE_LEC).forEach(uid=>{ for(const tk of Object.keys(PACK.tracks)){ const f=findUnit(tk,uid); if(f){ f.u.lec = SAMPLE_LEC[uid]; break; } } });
+
+function render(){ renderTracks(); renderNav(); const v = document.getElementById("view"); if(S.view==="today") v.innerHTML = vToday(); else if(S.view==="guide") v.innerHTML = vGuide(); else if(S.view==="course") v.innerHTML = vCourse(); else if(S.view==="quiz") v.innerHTML = vQuiz(); else if(S.view==="wrong") v.innerHTML = vWrong(); else v.innerHTML = vMe(); bind(); }
 
 function qHTML(tid, u, qi, inWrong){ const q = u.qs[qi]; const key = tid+"|"+u.id+"|"+qi; return '<div class="q" data-qkey="'+key+'"><p>'+(qi+1)+'. '+esc(q.q)+'</p>'+ q.opts.map((o,i)=>'<button class="opt" data-oi="'+i+'">'+esc(o)+'</button>').join("") + '<div class="why"></div></div>'; }
-function unitBody(tid, sjName, u){ const v = VIDEOS[sjName]; const link = v ? '<a class="vidlink" href="'+bvURL(v.bv)+'" target="_blank" rel="noopener">▶ 打开本单元对应课程视频（B站直达）</a>' : ""; return link + '<ul>'+u.pts.map(p=>'<li>'+esc(p)+'</li>').join("")+'</ul>' + u.qs.map((q,qi)=>qHTML(tid,u,qi,false)).join(""); }
+function unitBody(tid, sjName, u){ const v = VIDEOS[sjName]; const link = v ? '<a class="vidlink" href="'+bvURL(v.bv)+'" target="_blank" rel="noopener">▶ 打开本单元对应课程视频（B站直达）</a>' : ""; if(u.lec){ const sj = PACK.tracks[tid].subjects.find(s=>s.name===sjName); const ix = sj? sj.units.findIndex(x=>x.id===u.id) : -1; let nav=""; if(sj && ix>=0){ const pv = sj.units[ix-1], nx = sj.units[ix+1]; nav = '<div class="unitnav">'+(pv? '<button class="btn sm ghost" data-go="'+pv.id+'">‹ 上一单元</button>' : '<span></span>')+(nx? '<button class="btn sm ghost" data-go="'+nx.id+'">下一单元 ›</button>' : '<span></span>')+'</div>'; } return link + lecHTML(u, nav) + '<div class="lecsec"><h4>单元练习</h4></div>' + u.qs.map((q,qi)=>qHTML(tid,u,qi,false)).join(""); } return link + '<ul>'+u.pts.map(p=>'<li>'+esc(p)+'</li>').join("")+'</ul>' + u.qs.map((q,qi)=>qHTML(tid,u,qi,false)).join(""); }
 
 function vToday(){ const tid = S.track; const days = daysToExam(); const hint = '<div class="card" style="border-color:#ffd9c2;background:#fff8f3"><b>打开方式（重要）</b><div class="mut">请把本文件存到手机里、用浏览器（Safari）打开使用：在聊天应用里直接点开附件，按钮可能点不动、进度也存不住。用浏览器打开就没有这些问题。</div></div>'; const wm = weekMinutes(tid); const pct = Math.min(100, Math.round(wm/Math.max(1,S.weekly)*100)); const daily = Math.max(15, Math.round(S.weekly/7/5)*5); let acc=0; const queue=[]; for(const item of trackUnits(tid)){ if(S.done[item.u.id]) continue; queue.push(item); acc+=item.u.min; if(acc>=daily) break; }
  const tp = totalProgress(tid);
- let h = hint + '<div class="card"><h2>笔试倒计时</h2><div><span class="big accent">'+days+'</span> 天 <span class="mut">（2027 年 3 月笔试，日期暂定，以官方公告为准；报名约在 2027 年 1 月）</span></div>';
+ let h = hint + '<div class="card guide-banner" data-toguide="1"><b>第一次打开？先看导览 ›</b><div class="mut">六站把整个考试串起来：有几科、每科怎么学、设计题为什么是分水岭，还有一张科目二全景图。</div></div>' + '<div class="card"><h2>笔试倒计时</h2><div><span class="big accent">'+days+'</span> 天 <span class="mut">（2027 年 3 月笔试，日期暂定，以官方公告为准；报名约在 2027 年 1 月）</span></div>';
  h += '<div class="mut" style="margin-top:6px">本周已学 '+wm+' 分钟 / 目标 '+S.weekly+' 分钟 · '+PACK.tracks[tid].label+'总进度 '+tp.d+'/'+tp.n+' 单元（'+tp.pct+'%）</div><div class="bar"><i style="width:'+pct+'%"></i></div></div>';
  h += '<div class="card"><h2>今日任务（约 '+daily+' 分钟）</h2>';
  if(!queue.length) h += '<div class="empty">这个方向的单元全学完了，去错题本复盘吧。</div>';
@@ -1904,6 +2033,10 @@ function vQuiz(){ const tid = S.track; let h = '<div class="card"><h2>刷题 · 
  h += '<div style="display:flex;gap:8px;margin-top:6px"><button class="btn sm ghost" id="qQuit">退出</button><button class="btn sm" id="qNext" style="display:none">下一题</button></div></div>';
  return h; }
 function bind(){
+
+ document.querySelectorAll("[data-toguide]").forEach(b=>b.onclick=()=>{ S.view="guide"; save(); render(); window.scrollTo(0,0); });
+ document.querySelectorAll("[data-goto]").forEach(b=>b.onclick=()=>{ const uid=b.dataset.goto; for(const tk of Object.keys(PACK.tracks)){ if(findUnit(tk,uid)){ S.track=tk; break; } } S.openUid=uid; S.view="course"; save(); render(); window.scrollTo(0,0); });
+ document.querySelectorAll("[data-gt]").forEach(ob=>ob.onclick=()=>{ const parts=ob.dataset.gt.split("|"); const st=GUIDE[+parts[0]]; const oi=+parts[1]; const box=ob.closest(".gtest"); const why=box.querySelector(".why"); box.querySelectorAll(".opt").forEach(x=>x.classList.remove("ok","bad")); if(oi===st.test.a){ ob.classList.add("ok"); why.textContent="答对了。"+st.test.why; } else { ob.classList.add("bad"); box.querySelectorAll(".opt")[st.test.a].classList.add("ok"); why.textContent="再想想。"+st.test.why; } why.classList.add("show"); });
  document.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>{ const box=document.getElementById("playerBox"); if(box) box.innerHTML='<div class="player"><iframe src="'+bvEmbed(b.dataset.play)+'" allowfullscreen="true" scrolling="no"></iframe></div>'; });
  document.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>{ const box=document.getElementById("playerBox"); if(box) box.innerHTML='<div class="player"><iframe src="'+bvEmbed(b.dataset.play)+'" allowfullscreen="true" scrolling="no"></iframe></div>'; });
  document.querySelectorAll("[data-quiz]").forEach(b=>b.onclick=()=>{ const parts=b.dataset.quiz.split("|"); startQuiz(parts[0], parts[1]); });
