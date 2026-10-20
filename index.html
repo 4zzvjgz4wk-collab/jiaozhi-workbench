@@ -39,7 +39,7 @@ main{max-width:720px;margin:0 auto;padding:14px 14px 0}
 .chk.done{background:var(--ok);border-color:var(--ok)}
 .subj{margin-bottom:14px}
 .subj>h3{font-size:15px;padding:4px 2px 8px}
-.unit{border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:8px;overflow:hidden}
+.unit{scroll-margin-top:12px;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:8px;overflow:hidden}
 .unit .row{display:flex;gap:10px;align-items:center;padding:11px 12px;cursor:pointer}
 .unit .row .tt{flex:1}
 .unit .row b{font-size:14.5px;font-weight:600}
@@ -1962,7 +1962,7 @@ return h + '</div></details>';
 function videoBlock(tid, sjName, u){
 const v = VIDEOS[sjName]; const m = UNIT_EPS[u.id];
 if(m && EPS[m[0]]){
-const bv = m[0]; let h = '<div class="uvid"><div class="uvidt">本单元视频（页面内播放）'+(m[2]?' <span class="tag fw">参考集</span>':"")+'</div><div id="up-'+u.id+'"></div>';
+const bv = m[0]; let h = '<div class="uvid"><div class="uvidt">本单元视频'+(m[2]?' <span class="tag fw">参考集</span>':"")+'</div><div class="mut">电脑上在页面内播；iPhone 上点按钮会跳到 B 站、直接打开对应那一集。</div><div id="up-'+u.id+'"></div>';
 m[1].forEach(pg=>{ h += '<button class="btn sm" data-uep="'+bv+'|'+pg+'|'+u.id+'">▶ 第'+pg+'集 · '+esc(EPS[bv][pg-1])+'</button> ';});
 h += '<div style="margin-top:6px"><a class="vidlink" href="'+bvURL(bv)+'?p='+m[1][0]+'" target="_blank" rel="noopener">在 B 站打开本单元第一集 ›</a></div></div>';
 return h;
@@ -1972,6 +1972,8 @@ return "";
 }
 function bvURL(bv){ return "https://www.bilibili.com/video/" + bv + "/"; }
 function bvEmbed(bv, pg){ pg = pg||1; const cid = (typeof EP_CID!=="undefined" && EP_CID[bv]) ? EP_CID[bv][pg-1] : null; return "https://player.bilibili.com/player.html?bvid=" + bv + (cid ? "&cid=" + cid : "") + "&page=" + pg + "&high_quality=1&danmaku=0"; }
+function isIOS(){ try{ return /iPhone|iPad|iPod/i.test(navigator.userAgent||""); }catch(e){ return false; } }
+function epPageURL(bv, pg){ return "https://www.bilibili.com/video/" + bv + "?p=" + (pg||1); }
 
 /* ============ 机制层（与内容包分离，可复刻到其他考试） ============ */
 const LS_KEY = "jiaozhi_workbench_v1";
@@ -2092,7 +2094,7 @@ function panoHTML(){
   return h + '</div>';
 }
 function vGuide(){
-  let h = '<div class="card samplnote"><b>版本说明（v2.5）</b><div class="mut">初中方向三科讲义已按统一模板全量上线（34 个单元，含新立的《认知过程》），每单元均有：定位、一句话记住、思维导图、逐点讲、例题、易错点，并已按官方考试大纲逐条自检覆盖。小学与高中讲义在后续批次补齐。</div></div>';
+  let h = '<div class="card samplnote"><b>版本说明（v2.7）</b><div class="mut">初中方向三科讲义已按统一模板全量上线（34 个单元，含新立的《认知过程》），每单元均有：定位、一句话记住、思维导图、逐点讲、例题、易错点，并已按官方考试大纲逐条自检覆盖。小学与高中讲义在后续批次补齐。本次修复：①切换单元后自动停到新单元开头；②iPhone 上点视频分集改为跳到 B 站直接打开对应那一集（iPhone 的内置播放器不认定位参数），电脑上仍为页面内播放。</div></div>';
   GUIDE.forEach((st,i)=>{ h += '<div class="station"><span class="sno">'+esc(st.no)+' · 导览</span><h3>'+esc(st.t)+'</h3><div class="rule">一条规律：'+esc(st.rule)+'</div><p style="font-size:14.5px;line-height:1.75">'+esc(st.body)+'</p><div class="diag">'+st.diag.map((c,j)=>(j?'<span class="plus">→</span>':"")+'<span class="chip">'+esc(c)+'</span>').join("")+'</div>'; if(st.goto) h += '<button class="btn sm" data-goto="'+st.goto.uid+'">'+esc(st.goto.label)+' ›</button>'; if(st.test){ const q = st.test; h += '<div class="gtest"><b>本站自测</b><p style="margin-top:4px">'+esc(q.q)+'</p>'+q.opts.map((o,oi)=>'<button class="opt" data-gt="'+i+'|'+oi+'">'+esc(o)+'</button>').join("")+'<div class="why"></div></div>'; } h += '</div>'; });
   return h + panoHTML();
 }
@@ -2727,7 +2729,7 @@ function vToday(){ const tid = S.track; const days = daysToExam(); const hint = 
  h += '<div class="mut" style="margin-top:8px">没学完不用补，明天它还会排在最前面。学完记得在课程页做单元后面的练习题。</div></div>';
  return h; }
 
-function vCourse(){ const tid = S.track; let h = cmdCard() + '<div class="card"><h2>视频课（页面内直接看）</h2><div class="mut">点“在页面内播放”就在下方看，不用跳走；也可以去B站打开全集。先看视频，再学下面的要点和练习。</div><div id="playerBox"></div>'; PACK.tracks[tid].subjects.forEach(sj=>{ const v = VIDEOS[sj.name]; if(!v) return; h += '<div class="vrow"><span>▶ '+esc(sj.name)+'<br><span class="mut">'+esc(v.t)+'</span></span><span><button class="btn sm" data-play="'+v.bv+'|1">页面内播放</button> <a class="btn sm ghost" style="text-decoration:none" href="'+bvURL(v.bv)+'" target="_blank" rel="noopener">B站全集</a></span></div>'; }); PACK.tracks[tid].subjects.forEach(sj=>{ const v = VIDEOS[sj.name]; if(v && EPS[v.bv]) h += epsDirHTML(sj.name, v.bv); }); h += '<a class="vrow" href="https://www.smartedu.cn" target="_blank" rel="noopener"><span>▶ 国家智慧教育平台（官方免费）</span><span class="mut">smartedu.cn ›</span></a></div>'; PACK.tracks[tid].subjects.forEach(sj=>{ h += '<div class="subj"><h3>'+esc(sj.name)+'</h3>'; sj.units.forEach(u=>{ const done = !!S.done[u.id]; const open = S.openUid===u.id; h += '<div class="unit'+(open?" open":"")+'"><div class="row" data-open="'+u.id+'"><button class="chk'+(done?" done":"")+'" data-done="'+u.id+'">'+(done?"✓":"")+'</button><div class="tt"><b>'+esc(u.t)+'</b>'+(u.fw?' <span class="tag fw">框架 · 题库二期</span>':"")+prTag(u.id)+'<div class="mut">预计 '+u.min+' 分钟</div></div><span class="mut">'+(open?"收起":"展开")+'</span></div><div class="body">'+(open?unitBody(tid,sj.name,u):"")+'</div></div>'; }); h += '</div>'; }); return h; }
+function vCourse(){ const tid = S.track; let h = cmdCard() + '<div class="card"><h2>视频课（页面内直接看）</h2><div class="mut">点“在页面内播放”就在下方看，不用跳走；也可以去B站打开全集。先看视频，再学下面的要点和练习。</div><div id="playerBox"></div>'; PACK.tracks[tid].subjects.forEach(sj=>{ const v = VIDEOS[sj.name]; if(!v) return; h += '<div class="vrow"><span>▶ '+esc(sj.name)+'<br><span class="mut">'+esc(v.t)+'</span></span><span><button class="btn sm" data-play="'+v.bv+'|1">页面内播放</button> <a class="btn sm ghost" style="text-decoration:none" href="'+bvURL(v.bv)+'" target="_blank" rel="noopener">B站全集</a></span></div>'; }); PACK.tracks[tid].subjects.forEach(sj=>{ const v = VIDEOS[sj.name]; if(v && EPS[v.bv]) h += epsDirHTML(sj.name, v.bv); }); h += '<a class="vrow" href="https://www.smartedu.cn" target="_blank" rel="noopener"><span>▶ 国家智慧教育平台（官方免费）</span><span class="mut">smartedu.cn ›</span></a></div>'; PACK.tracks[tid].subjects.forEach(sj=>{ h += '<div class="subj"><h3>'+esc(sj.name)+'</h3>'; sj.units.forEach(u=>{ const done = !!S.done[u.id]; const open = S.openUid===u.id; h += '<div class="unit'+(open?" open":"")+'" id="unit-'+u.id+'"><div class="row" data-open="'+u.id+'"><button class="chk'+(done?" done":"")+'" data-done="'+u.id+'">'+(done?"✓":"")+'</button><div class="tt"><b>'+esc(u.t)+'</b>'+(u.fw?' <span class="tag fw">框架 · 题库二期</span>':"")+prTag(u.id)+'<div class="mut">预计 '+u.min+' 分钟</div></div><span class="mut">'+(open?"收起":"展开")+'</span></div><div class="body">'+(open?unitBody(tid,sj.name,u):"")+'</div></div>'; }); h += '</div>'; }); return h; }
 
 function vWrong(){ const tid = S.track; const list = S.wrong.filter(w=>w.tid===tid); let h = '<div class="card"><h2>错题本（'+list.length+'）</h2>'; if(!list.length) h += '<div class="empty">还没有错题。做练习时答错的题会自动记到这里，答对一次就会移出。</div>'; list.forEach(w=>{ const f = findUnit(w.tid, w.uid); if(!f) return; h += '<div style="padding:8px 0;border-bottom:1px dashed var(--line)"><span class="tag">'+esc(f.sj.split(" · ")[0])+'</span><span class="mut">'+esc(f.u.t)+'</span>'+ qHTML(w.tid, f.u, w.qi, true) +'</div>'; }); return h+'</div>'; }
 
@@ -2749,24 +2751,25 @@ function vQuiz(){ const tid = S.track; let h = '<div class="card"><h2>刷题 · 
  h += '<div class="q"><p>' + esc(q.q) + '</p>' + q.opts.map((o,i)=>'<button class="opt" data-qopt="'+i+'">'+esc(o)+'</button>').join("") + '<div class="why" id="qWhy"></div></div>';
  h += '<div style="display:flex;gap:8px;margin-top:6px"><button class="btn sm ghost" id="qQuit">退出</button><button class="btn sm" id="qNext" style="display:none">下一题</button></div></div>';
  return h; }
+function scrollToUnit(uid){ const go=()=>{ const el=document.getElementById("unit-"+uid); if(el) el.scrollIntoView({block:"start"}); }; if(window.requestAnimationFrame) requestAnimationFrame(()=>setTimeout(go,30)); else setTimeout(go,30); }
 function bind(){
 
  document.querySelectorAll("[data-res]").forEach(c=>c.onchange=()=>{ const v=c.dataset.res; S.res = S.res||[]; if(c.checked){ if(!S.res.includes(v)) S.res.push(v); } else { S.res = S.res.filter(x=>x!==v); } save(); });
- document.querySelectorAll("[data-uep]").forEach(b=>b.onclick=()=>{ const parts=b.dataset.uep.split("|"); const box=document.getElementById("up-"+parts[2]); if(box) box.innerHTML='<div class="player"><iframe src="'+bvEmbed(parts[0], parts[1])+'" allowfullscreen="true" scrolling="no"></iframe></div>'; });
+ document.querySelectorAll("[data-uep]").forEach(b=>b.onclick=()=>{ const parts=b.dataset.uep.split("|"); const bv=parts[0], pg=+parts[1]; const box=document.getElementById("up-"+parts[2]); const url=epPageURL(bv,pg); if(isIOS()){ window.open(url,"_blank"); if(box) box.innerHTML='<div class="mut" style="margin-top:6px">已在新页面打开这一集（B 站）。如果没跳过去，<a href="'+url+'" target="_blank" rel="noopener">点这里打开</a>。</div>'; return; } if(box) box.innerHTML='<div class="player"><iframe src="'+bvEmbed(bv,pg)+'" allowfullscreen="true" scrolling="no"></iframe></div><div class="mut" style="margin-top:6px">如果播放器里播的不是这一集，<a href="'+url+'" target="_blank" rel="noopener">点这里在 B 站直接打开这一集</a>。</div>'; });
 
  document.querySelectorAll("[data-toguide]").forEach(b=>b.onclick=()=>{ S.view="guide"; save(); render(); window.scrollTo(0,0); });
- document.querySelectorAll("[data-goto]").forEach(b=>b.onclick=()=>{ const uid=b.dataset.goto; for(const tk of Object.keys(PACK.tracks)){ if(findUnit(tk,uid)){ S.track=tk; break; } } S.openUid=uid; S.view="course"; save(); render(); window.scrollTo(0,0); });
+ document.querySelectorAll("[data-goto]").forEach(b=>b.onclick=()=>{ const uid=b.dataset.goto; for(const tk of Object.keys(PACK.tracks)){ if(findUnit(tk,uid)){ S.track=tk; break; } } S.openUid=uid; S.view="course"; save(); render(); scrollToUnit(uid); });
  document.querySelectorAll("[data-gt]").forEach(ob=>ob.onclick=()=>{ const parts=ob.dataset.gt.split("|"); const st=GUIDE[+parts[0]]; const oi=+parts[1]; const box=ob.closest(".gtest"); const why=box.querySelector(".why"); box.querySelectorAll(".opt").forEach(x=>x.classList.remove("ok","bad")); if(oi===st.test.a){ ob.classList.add("ok"); why.textContent="答对了。"+st.test.why; } else { ob.classList.add("bad"); box.querySelectorAll(".opt")[st.test.a].classList.add("ok"); why.textContent="再想想。"+st.test.why; } why.classList.add("show"); });
- document.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>{ const box=document.getElementById("playerBox"); if(box) box.innerHTML='<div class="player"><iframe src="'+(function(){ const pp=b.dataset.play.split("|"); return bvEmbed(pp[0], pp[1]); })()+'" allowfullscreen="true" scrolling="no"></iframe></div>'; });
- document.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>{ const box=document.getElementById("playerBox"); if(box) box.innerHTML='<div class="player"><iframe src="'+(function(){ const pp=b.dataset.play.split("|"); return bvEmbed(pp[0], pp[1]); })()+'" allowfullscreen="true" scrolling="no"></iframe></div>'; });
+ document.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>{ const pp=b.dataset.play.split("|"); const bv=pp[0], pg=+pp[1]; if(isIOS() && pg>1){ window.open(epPageURL(bv,pg),"_blank"); return; } const box=document.getElementById("playerBox"); if(box) box.innerHTML='<div class="player"><iframe src="'+bvEmbed(bv, pg)+'" allowfullscreen="true" scrolling="no"></iframe></div>'; });
+ document.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>{ const pp=b.dataset.play.split("|"); const bv=pp[0], pg=+pp[1]; if(isIOS() && pg>1){ window.open(epPageURL(bv,pg),"_blank"); return; } const box=document.getElementById("playerBox"); if(box) box.innerHTML='<div class="player"><iframe src="'+bvEmbed(bv, pg)+'" allowfullscreen="true" scrolling="no"></iframe></div>'; });
  document.querySelectorAll("[data-quiz]").forEach(b=>b.onclick=()=>{ const parts=b.dataset.quiz.split("|"); startQuiz(parts[0], parts[1]); });
  const qAgain=document.getElementById("qAgain"); if(qAgain) qAgain.onclick=()=>{ Q=null; render(); };
  const qQuit=document.getElementById("qQuit"); if(qQuit) qQuit.onclick=()=>{ Q=null; S.view="course"; save(); render(); };
  const qNext=document.getElementById("qNext"); if(qNext) qNext.onclick=()=>{ Q.idx++; Q.answered=false; render(); };
  document.querySelectorAll("[data-qopt]").forEach(ob=>ob.onclick=()=>{ if(!Q || Q.answered) return; Q.answered=true; const item=Q.list[Q.idx]; const q=item.q; const oi=+ob.dataset.qopt; const why=document.getElementById("qWhy"); document.querySelectorAll("[data-qopt]").forEach(x=>x.classList.remove("ok","bad")); if(oi===q.a){ ob.classList.add("ok"); Q.score++; if(why){ why.textContent="答对了。"+q.why; why.classList.add("show"); } } else { ob.classList.add("bad"); document.querySelectorAll("[data-qopt]")[q.a].classList.add("ok"); if(why){ why.textContent="答错了，已记入错题本。"+q.why; why.classList.add("show"); } if(!S.wrong.some(w=>w.tid===Q.tid&&w.uid===item.uid&&w.qi===item.qi)){ S.wrong.push({tid:Q.tid, uid:item.uid, qi:item.qi}); save(); } } const nx=document.getElementById("qNext"); if(nx) nx.style.display=""; });
  document.querySelectorAll("[data-done]").forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); const uid=b.dataset.done; if(S.done[uid]) delete S.done[uid]; else S.done[uid]=weekKey(); save(); render(); });
- document.querySelectorAll("[data-open]").forEach(r=>r.onclick=()=>{ const uid=r.dataset.open; S.openUid = (S.openUid===uid? null: uid); save(); render(); });
- document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{ S.openUid=b.dataset.go; S.view="course"; save(); render(); window.scrollTo(0,0); });
+ document.querySelectorAll("[data-open]").forEach(r=>r.onclick=()=>{ const uid=r.dataset.open; S.openUid = (S.openUid===uid? null: uid); save(); render(); if(S.openUid) scrollToUnit(uid); });
+ document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{ S.openUid=b.dataset.go; S.view="course"; save(); render(); scrollToUnit(b.dataset.go); });
  document.querySelectorAll(".q").forEach(qel=>{ const key=qel.dataset.qkey; const parts=key.split("|"); const tid=parts[0], uid=parts[1], qi=+parts[2]; const f=findUnit(tid,uid); if(!f) return; const q=f.u.qs[qi]; qel.querySelectorAll(".opt").forEach(ob=>ob.onclick=()=>{ const oi=+ob.dataset.oi; const why=qel.querySelector(".why"); qel.querySelectorAll(".opt").forEach(x=>x.classList.remove("ok","bad")); if(oi===q.a){ ob.classList.add("ok"); if(why){ why.textContent="答对了。"+q.why; why.classList.add("show"); } const ix=S.wrong.findIndex(w=>w.tid===tid&&w.uid===uid&&w.qi===qi); if(ix>=0 && S.view==="wrong"){ S.wrong.splice(ix,1); save(); setTimeout(render,600); } } else { ob.classList.add("bad"); qel.querySelectorAll(".opt")[q.a].classList.add("ok"); if(why){ why.textContent="再想想。正确答案已标出："+q.why; why.classList.add("show"); } if(!S.wrong.some(w=>w.tid===tid&&w.uid===uid&&w.qi===qi)){ S.wrong.push({tid,uid,qi}); save(); } } }); });
  const whs=document.getElementById("whSave"); if(whs) whs.onclick=()=>{ const v=parseFloat(document.getElementById("wh").value); if(v>0){ S.weekly=Math.round(v*60); save(); render(); } };
  const cp=document.getElementById("cp"); if(cp) cp.onclick=()=>{ const t=document.getElementById("codeBox"); t.select(); try{ document.execCommand("copy"); cp.textContent="已复制"; }catch(e){ cp.textContent="已选中，长按复制"; } setTimeout(()=>cp.textContent="复制进度码",1500); };
